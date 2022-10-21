@@ -11,24 +11,25 @@ import cv2
 
 # construct the argument parser and parse the arguments
 
-
 # load the handwriting OCR model
 print("[INFO] loading handwriting OCR model...")
 model = load_model("model.h5")
 
 # load the input image from disk, convert it to grayscale, and blur
 # it to reduce noise
-image = cv2.imread("test.jpeg")
+image = cv2.imread("test.png")
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
 # perform edge detection, find contours in the edge map, and sort the
 # resulting contours from left-to-right
-edged = cv2.Canny(blurred, 30, 150)
+edged = cv2.Canny(blurred, 0, 255)
 cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
 	cv2.CHAIN_APPROX_SIMPLE)
+
 cnts = imutils.grab_contours(cnts)
 cnts = sort_contours(cnts, method="left-to-right")[0]
+
 
 # initialize the list of contour bounding boxes and associated
 # characters that we'll be OCR'ing

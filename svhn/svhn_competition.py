@@ -44,13 +44,13 @@ def main(args):
     svhn = SVHN()
     train = svhn.train.map(lambda data: (
         data['image'], data['bboxes'], data['classes'])).take(-1)
-    train = list(train.as_numpy_iterator())[:1000]
+    train = list(train.as_numpy_iterator())[:3000]
 
     dev = svhn.dev.map(lambda data: (data['image'])).take(-1)
-    dev = list(dev.as_numpy_iterator())[:200]
+    dev = list(dev.as_numpy_iterator())[:500]
 
     test = svhn.test.map(lambda data: (data['image'])).take(-1)
-    test = list(test.as_numpy_iterator())[:200]
+    test = list(test.as_numpy_iterator())[:500]
 
     my_anchors = []
 
@@ -184,7 +184,7 @@ def main(args):
         'classes_output': keras.metrics.BinaryAccuracy(),
     }
 
-    batch_size = 16
+    batch_size = 32
     epochs = 20
     decay_steps = epochs * len(train)*2 / batch_size
     lr_decayed_fn = keras.experimental.CosineDecay(
@@ -199,48 +199,6 @@ def main(args):
 
     model.save('model.h5')
     model = keras.models.load_model('model.h5')
-
-    with open(f"svhn_competition.txt", "w", encoding="utf-8") as predictions_file:
-        # TODO: Predict the digits and their bounding boxes on the test set.
-        # Assume that for a single test image we get
-        # - `predicted_classes`: a 1D array with the predicted digits,
-        # - `predicted_bboxes`: a [len(predicted_classes), 4] array with bboxes;
-
-        MAX_ROI = 5
-        IOU_THRESHOLD = 0.2
-        SCORE_THRESHOLD = 0.2
-
-        predicted_classes, predicted_bboxes = model.predict(
-            X_test, batch_size=32)
-
-        for i in range(len(predicted_classes)):
-            scores = predicted_classes[i, :, 1:].max(axis=1)
-            predicted_classes = predicted_classes[i, :, 1:].argmax(axis=1)
-            predicted_bboxes = predicted_bboxes[i]
-
-            predicted_bboxess = bboxes_utils.bboxes_from_fast_rcnn(
-                my_anchors, predicted_bboxes) * image_size
-
-            selected_indices = tf.image.non_max_suppression(
-                predicted_bboxess, scores, MAX_ROI, iou_threshold=IOU_THRESHOLD, score_threshold=SCORE_THRESHOLD).numpy()
-            selected_boxes = predicted_bboxess[selected_indices]
-            selected_predicted_classes = predicted_classes[selected_indices]
-
-            orig_selected_boxes = np.array(selected_boxes)
-            # height
-            orig_selected_boxes[:, 0] /= X_test_multiples[i][0]
-            # height
-            orig_selected_boxes[:, 2] /= X_test_multiples[i][0]
-            # width
-            orig_selected_boxes[:, 1] /= X_test_multiples[i][1]
-            # width
-            orig_selected_boxes[:, 3] /= X_test_multiples[i][1]
-
-            output = ""
-            for label, bbox in zip(selected_predicted_classes, orig_selected_boxes):
-                output += str(label+1) + " " + str(int(bbox[0])) + " " + str(
-                    int(bbox[1])) + " " + str(int(bbox[2])) + " " + str(int(bbox[3])) + " "
-            print(*output, file=predictions_file, sep='')
 
 
 if __name__ == "__main__":

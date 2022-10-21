@@ -22,9 +22,9 @@ from utils import load_zero_nine_dataset
 
 # initialize the number of epochs to train for, initial learning rate,
 # and batch size
-EPOCHS = 4
+EPOCHS = 20
 INIT_LR = 1e-1
-BS = 128
+BS = 64
 
 # load the A-Z and MNIST datasets, respectively
 print("[INFO] loading datasets...")
