@@ -17,15 +17,27 @@ model = load_model("model.h5")
 
 # load the input image from disk, convert it to grayscale, and blur
 # it to reduce noise
-image = cv2.imread("test.png")
+image = cv2.imread("./data/test3.jpg")
+image = cv2.resize(image, (512, 512), cv2.INTER_AREA)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+
+
+cv2.imshow("Image",image)
+cv2.waitKey(0)
 
 # perform edge detection, find contours in the edge map, and sort the
 # resulting contours from left-to-right
-edged = cv2.Canny(blurred, 0, 255)
-cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
-	cv2.CHAIN_APPROX_SIMPLE)
+edged = cv2.Canny(gray, 50, 200, 255)
+
+edged = cv2.GaussianBlur(edged, (3, 3), 0)
+
+cv2.imshow("Edges", edged)
+cv2.waitKey(0)
+
+
+cnts = cv2.findContours(edged.copy(), cv2.RETR_CCOMP,
+                        cv2.CHAIN_APPROX_SIMPLE)
 
 cnts = imutils.grab_contours(cnts)
 cnts = sort_contours(cnts, method="left-to-right")[0]
@@ -50,6 +62,9 @@ for c in cnts:
 		thresh = cv2.threshold(roi, 0, 255,
 			cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 		(tH, tW) = thresh.shape
+  
+		# cv2.imshow("Thresh", thresh)
+		# cv2.waitKey(0)
 
 		# if the width is greater than the height, resize along the
 		# width dimension
@@ -72,7 +87,7 @@ for c in cnts:
 			left=dX, right=dX, borderType=cv2.BORDER_CONSTANT,
 			value=(0, 0, 0))
 		padded = cv2.resize(padded, (32, 32))
-
+  
 		# prepare the padded image for classification via our
 		# handwriting OCR model
 		padded = padded.astype("float32") / 255.0
@@ -103,9 +118,9 @@ for (pred, (x, y, w, h)) in zip(preds, boxes):
 
 	# draw the prediction on the image
 	print("[INFO] {} - {:.2f}%".format(label, prob * 100))
-	cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+	cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
 	cv2.putText(image, label, (x - 10, y - 10),
-		cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+		cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 0, 0), 2)
 
 # show the image
 cv2.imshow("Image", image)

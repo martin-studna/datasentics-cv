@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import tensorflow as tf
 from imutils import build_montages
 
 from resnet import ResNet
@@ -19,12 +20,15 @@ from utils import load_zero_nine_dataset
 
 # import the necessary packages
 
+tf.config.threading.set_inter_op_parallelism_threads(16)
+tf.config.threading.set_intra_op_parallelism_threads(16)
+
 
 # initialize the number of epochs to train for, initial learning rate,
 # and batch size
-EPOCHS = 20
+EPOCHS = 50
 INIT_LR = 1e-1
-BS = 64
+BS = 256
 
 # load the A-Z and MNIST datasets, respectively
 print("[INFO] loading datasets...")
@@ -84,8 +88,10 @@ print("[INFO] training network...")
 
 H = model.fit(
     aug.flow(trainX, trainY, batch_size=BS), validation_data=(testX, testY), steps_per_epoch=len(trainX) // BS, epochs=EPOCHS,
-    class_weight=classWeight,
+    class_weight=classWeight, callbacks=[
+        tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)],
     verbose=1)
+
 
 # define the list of label names
 labelNames = "0123456789"
