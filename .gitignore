@@ -132,3 +132,7 @@ dmypy.json
 *.tfrecord
 *.zip
 *.h5
+./yolo/mnist/*.jpg
+*.weights
+./**/*.pgm
+./yolo/mnist/**/*.pgm

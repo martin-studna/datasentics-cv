@@ -139,14 +139,10 @@ def bboxes_training(anchors, gold_classes, gold_bboxes, iou_threshold):
     IOUs = BACKEND.zeros((len(anchors), len(gold_bboxes)))
     IOUs_for_gold = BACKEND.zeros((len(gold_bboxes), len(anchors)))
 
-    used_anchors = []
-
-
-
-    iou = bboxes_iou(  anchors.reshape(len(anchors), 1, 4), gold_bboxes.reshape(1, len(gold_bboxes) , 4)  )
+    iou = bboxes_iou(anchors.reshape(len(anchors), 1, 4),
+                     gold_bboxes.reshape(1, len(gold_bboxes), 4))
     IOUs = iou
     IOUs_for_gold = iou.T
-        
 
     for g in range(len(gold_bboxes)):
         max_anchor_iou_index = IOUs_for_gold[g].argmax()
